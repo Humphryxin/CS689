@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.6  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20140224;14124100">
+	<STYLE TYPE="text/css">
+	<!--
+		H1 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif; text-align: center }
+		P { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		H2 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		A:link { color: #1a41a8 }
+		A:visited { color: #1a41a8 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#1a41a8" VLINK="#1a41a8" BGCOLOR="#ffffff" DIR="LTR">
+<H1>Project 2: Potential Field Planning for Rigid Bodies and
+Manipulator Chains</H1>
+<P ALIGN=CENTER><B>Due Date: </B><B>Mar</B><B>-</B><B>19</B><B>-201</B><B>8</B><B>
+@ </B><B>11</B><B>:</B><B>59</B><B>PM</B> 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Implement potential field planners
+	in the case of <EM><B>rigid bodies (40pts) </B></EM>and <EM><B>manipulator
+	chains (40pts)</B></EM> 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Your implementation should also
+	contain strategies for escaping local minima when the robot gets
+	stuck <B>(15pts in case of rigid body, 15pts in case of
+	manipulator)</B>. One possibility is to considerably increase the
+	repulsive potential in order to push the robot away from the
+	obstacle. Another one is to move in a random direction away from the
+	obstacle. You could also try adding other artificial goal/obstacle
+	points to guide the robot away from the real obstacles and toward
+	the real goal. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Project is graded out of 100
+	points, so there is possibility of up to 10 points of extra credit 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">You can work by yourself or with a
+	partner of your own choice 
+	</P>
+	<LI><P>Implementation can be done in MATLAB or C/C++ on top of the
+	provided support code 
+	</P>
+</UL>
+<P>Environment consists of a robot, a goal region represented as a
+circle, and several obstacles represented as circles as well.
+Graphical interface supports the dynamic addition and displacement of
+obstacles and goal. A new obstacle can be added at any time by
+pressing down the left-button of the mouse. Each obstacle and the
+goal can be moved around by clicking inside them and holding the
+left-button down while moving the mouse. To run the planner, user
+needs to press the key 'p' on the keyboard. Pressing 'p' again
+toggles between running and stopping the planner. User can change the
+radius of each obstacle and the goal by first pressing the key 'r'
+and then clicking inside an obstacle/goal, holding the left-button
+down while moving the mouse. Pressing 'r' again toggles between
+editing radius or moving the obstacles and the goal. 
+</P>
+<H2><A NAME="impNotesRigidBody"></A>Implementation Notes: Rigid Body</H2>
+<P>Simulator provides access to goal center, goal radius, number of
+obstacles, current robot configuration (robot x, robot y, robot
+theta), and vertices of the polygon representing the robot. Simulator
+also computes the closest point on the i-th obstacle for any given
+point (x, y), see function <B>ClosestPointOnObstacle</B> 
+</P>
+<P>When computing the potential, it is recommended that you use each
+vertex of the polygon robot as a control point. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">For each control point (xj, yj),
+	you should then 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">compute its Jacobian matrix Jac<SUB>j</SUB>
+				</P>
+		<LI><P STYLE="margin-bottom: 0in">compute the workspace gradient
+		(wsg<SUB>i</SUB>) to each obstacle [In my implementation, wsg<SUB>i</SUB>
+		is zero if the distance from (xj, yj) to the closest point on the
+		i-th obstacle is larger than a small constant. I then scale the
+		gradient in order to ensure that the robot gets pushed away when
+		coming close to the obstacles. You may need to play around in order
+		to figure out by how much to scale the gradient in order to get the
+		desired behavior.] 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">use the Jacobian matrix to
+		transform wsg<SUB>i</SUB> into a configuration space gradient csg<SUB>i</SUB>,
+		which is then added to the overall configuration space gradient csg
+				</P>
+		<LI><P STYLE="margin-bottom: 0in">compute the workspace gradient to
+		the goal, scale it appropriately, transform it into a configuration
+		space gradient via the Jacobian, and add it to the overall
+		configuration space gradient 
+		</P>
+	</UL>
+	<LI><P>Now that the overall configuration space gradient has been
+	computed, scale it so that you make a small move in x and y and a
+	small move in theta. Recall that the robot should always move in
+	direction opposite to the gradient. 
+	</P>
+</UL>
+<P>If using <B>C++</B> support code, you should implement the
+function <B>ConfigurationMove</B> in the class <B>RigidBodyPlanner.</B>
+This function should return <B>RigidBodyMove</B>, which represents a
+small move (dx, dy, dtheta) by the robot. If using <B>Matlab</B>
+support code, you should implement the function <B>RigidBodyPlanner</B>.
+</P>
+<H2><A NAME="impNotesRigidBody1"></A>Implementation Notes:
+Manipulator Chain</H2>
+<P>Environment consists of a 2d manipulator chain, a goal region
+represented as a circle, and several obstacles represented as circles
+as well. 
+</P>
+<P>Simulator provides access to goal center, goal radius, number of
+obstacles, and start and end positions of each link in the chain.
+Simulator also computes the closest point on the i-th obstacle for
+any given point (x, y), see function <B>ClosestPointOnObstacle</B>
+Moreover, simulator also implements Forward Kinematics, see function
+<B>FK</B>. 
+</P>
+<P>When computing the potential, it is recommended that you use the
+end position of each chain link as a control point. You should follow
+a similar approach as in the case of rigid bodies. One difference is
+that in the case of the manipulator chain, the attractive potential
+should be computed only between the end effector (last point in the
+chain) and the goal and not between any intermediate links and the
+goal. In this way, the potential will guide the end effector and not
+the intermediate links toward the goal. The repulsive potential, as
+in the case of rigid bodies, should be computed between the end of
+each link and each obstacle. 
+</P>
+<P><B>Important:</B> You can use an equivalent but easier to compute
+definition of the Jacobian. In this definition the partial derivative
+of the forward kinematics of the end position of the j-th joint with
+respect to the i-th joint angle with i &lt;= j is given as 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">x = -LinkEndY(j) + LinkStartY(i) 
+	</P>
+	<LI><P>y = LinkEndX(j) - LinkStartX(i) 
+	</P>
+</UL>
+<P>If using <B>C++</B> support code, you should implement the
+function <B>ConfigurationMove</B> in the class <B>ManipPlanner.</B>
+This function should compute small moves for each link angle. If
+using <B>Matlab</B> support code, you should implement the function
+<B>ManipPlanner</B>. 
+</P>
+<H2><A NAME="sec_compiling"></A>Support Code: MATLAB</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Support code can be found in
+	MatlabRigidBodyPFP and MatlabManipPFP 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">The rigid body program can be run
+	as <B>RunRigidBodyPlanner('robotL.txt')</B> where the argument is
+	the name of the robot file. You can use one of the provided files or
+	create your own. 
+	</P>
+	<LI><P>The manipulator chain program can be run as
+	<B>RunManipPlanner(nrLinks, linkLength)</B> where <B>nrLinks</B> is
+	a positive integer representing the number of links and <B>linkLength</B>
+	is a positive real representing the length of each link. 
+	</P>
+</UL>
+<H2><A NAME="sec_compiling1"></A>Support Code: C++</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Support code can be found in
+	CppRigidBodyPFP and CppManipPFP 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">To compile the code inside each
+	directory use similar steps as in the case of the bug algorithms in
+	project 1 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">The rigid body program can be run
+	on Windows as <B>bin\Debug\Planner.exe robotL.txt</B> and on
+	Linux/MacOS as <B>bin/Planner robotL.txt</B> where the argument is
+	the name of the robot file. You can use one of the provided files or
+	create your own. 
+	</P>
+	<LI><P>The manipulator chain program can be run on Windows as
+	<B>bin\Debug\Planner.exe nrLinks linkLength</B> and on Linux/MacOS
+	as <B>bin/Planner nrLinks linkLength</B> where <B>nrLinks</B> is a
+	positive integer representing the number of links and <B>linkLength</B>
+	is a positive real representing the length of each link. 
+	</P>
+</UL>
+
+<H2><A NAME="sec_compiling1"></A>How to submit</H2>
+
+<UL>
+<LI> Please submit via blackboard a zipped directory named:
+  LastNames_Project2_CS689.zip </LI>
+<LI> LastNames allows you to specify a more than one person team.
+</UL>
+
+</BODY>
+</HTML>
